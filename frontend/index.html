@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlowByte: Fire Monitor AI</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --accent: #8b5cf6;
+            --danger: #f43f5e;
+            --danger-glow: rgba(244, 63, 94, 0.6);
+            --warning: #f59e0b;
+            --warning-glow: rgba(245, 158, 11, 0.6);
+            --success: #10b981;
+            --bg-dark: #0f172a;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.02);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-dark);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            color: var(--text-main);
+            margin: 0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- CONTAINER --- */
+        .app-container {
+            width: 95vw;
+            height: 90vh;
+            max-width: 1920px;
+            aspect-ratio: 16/9;
+            background: rgba(15, 23, 42, 0.6);
+            border: none;
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-badge {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        /* --- UPLOAD SCREEN --- */
+        #upload-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .cards-row {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .upload-card {
+            width: 280px;
+            height: 320px;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .upload-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--primary);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        .upload-card i {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            transition: 0.3s;
+        }
+
+        .upload-card.done {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .upload-card.done i {
+            color: #10b981;
+        }
+
+        .upload-card input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn-start {
+            padding: 20px 60px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+            transition: transform 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- DASHBOARD --- */
+        #dashboard-screen {
+            display: none;
+            flex: 1;
+            gap: 20px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .calendar-container {
+            flex: 3;
+            background: var(--glass);
+            border-radius: 20px;
+            border: none;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .widget {
+            background: var(--glass);
+            border: none;
+            border-radius: 20px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        /* --- FULLCALENDAR STYLING --- */
+        .fc {
+            height: 100%;
+        }
+
+        .fc-theme-standard td,
+        .fc-theme-standard th,
+        .fc-scrollgrid {
+            border: none !important;
+        }
+
+        .fc-col-header-cell {
+            padding: 15px 0;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 1px;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-main);
+            opacity: 0.7;
+            padding: 10px;
+        }
+
+        .fc-daygrid-day:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+        }
+
+        .fc-event {
+            border: none !important;
+            background: transparent !important;
+            margin-top: 4px;
+            cursor: pointer;
+        }
+
+        .event-pill {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            color: white;
+        }
+
+        .event-pill:hover {
+            transform: scale(1.05) translateY(-2px);
+            z-index: 10;
+        }
+
+        .risk-high {
+            background: linear-gradient(135deg, #ef4444, #be123c);
+            box-shadow: 0 4px 15px var(--danger-glow);
+            border-left: 3px solid white;
+        }
+
+        .risk-med {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 15px var(--warning-glow);
+            border-left: 3px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .fc-button {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: none !important;
+            color: white !important;
+            text-transform: capitalize;
+            border-radius: 8px !important;
+        }
+
+        .fc-button-active {
+            background: var(--primary) !important;
+        }
+
+        .fc-toolbar-title {
+            font-size: 1.5rem !important;
+        }
+
+        /* --- EMPTY STATE --- */
+        .empty-state-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--text-muted);
+            animation: fadeIn 1s ease;
+        }
+
+        .empty-icon {
+            font-size: 5rem;
+            color: var(--success);
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite;
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .zzz-anim {
+            position: absolute;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--success);
+            opacity: 0;
+            animation: zzz 2s infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-15px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        @keyframes zzz {
+            0% {
+                transform: translate(20px, -10px) scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(40px, -40px) scale(1.2);
+                opacity: 0;
+            }
+        }
+
+        /* --- MODAL (EVENT DETAILS) --- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-content {
+            width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .modal-content.glow-red {
+            border-color: var(--danger);
+            box-shadow: 0 0 40px var(--danger-glow);
+        }
+
+        .modal-content.glow-orange {
+            border-color: var(--warning);
+            box-shadow: 0 0 40px var(--warning-glow);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-muted);
+            transition: 0.2s;
+        }
+
+        .modal-close:hover {
+            color: white;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .prob-badge {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-align: center;
+            margin: 20px 0;
+            background: linear-gradient(to right, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #loader-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(15px);
+            z-index: 999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* --- LIQUID GLASS LIST VIEW --- */
+        #risksView {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .risks-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .risks-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .risks-count-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            color: #e5e7eb;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(148, 163, 184, 0.6);
+        }
+
+        .risks-list {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .risks-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .risks-list::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .risks-list::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.5);
+            border-radius: 999px;
+        }
+
+        .risk-card {
+            position: relative;
+            padding: 10px 12px;
+            border-radius: 16px;
+            background: radial-gradient(circle at top left,
+                    rgba(148, 163, 184, 0.35),
+                    rgba(15, 23, 42, 0.95));
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow:
+                0 16px 45px rgba(15, 23, 42, 0.95),
+                0 0 0 1px rgba(15, 23, 42, 0.8) inset;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease,
+                background 0.18s ease;
+        }
+
+        .risk-card:hover {
+            transform: translateY(-3px);
+            box-shadow:
+                0 22px 55px rgba(15, 23, 42, 0.95),
+                0 0 0 1px rgba(248, 250, 252, 0.4) inset;
+            border-color: rgba(248, 250, 252, 0.45);
+        }
+
+        .risk-card-high {
+            background: radial-gradient(circle at top left,
+                    rgba(248, 113, 113, 0.55),
+                    rgba(15, 23, 42, 0.96));
+            border-color: rgba(248, 113, 113, 0.6);
+            box-shadow:
+                0 18px 55px rgba(239, 68, 68, 0.45),
+                0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        }
+
+        .risk-card-med {
+            background: radial-gradient(circle at top left,
+                    rgba(251, 191, 36, 0.55),
+                    rgba(15, 23, 42, 0.96));
+            border-color: rgba(251, 191, 36, 0.6);
+            box-shadow:
+                0 18px 55px rgba(251, 191, 36, 0.4),
+                0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        }
+
+        .risk-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .risk-chips {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .chip {
+            padding: 3px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.5);
+        }
+
+        .chip-high {
+            background: rgba(248, 113, 113, 0.16);
+            border-color: rgba(248, 113, 113, 0.8);
+            color: #fee2e2;
+        }
+
+        .chip-med {
+            background: rgba(251, 191, 36, 0.15);
+            border-color: rgba(251, 191, 36, 0.8);
+            color: #fffbeb;
+        }
+
+        .chip-prob {
+            background: rgba(15, 23, 42, 0.75);
+            border-color: rgba(148, 163, 184, 0.8);
+            color: #e5e7eb;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .risk-location {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #e5e7eb;
+            white-space: nowrap;
+        }
+
+        .risk-sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: #cbd5f5;
+            opacity: 0.9;
+            flex-wrap: wrap;
+        }
+
+        .risk-sub-row span {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .risk-sub-row i {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MODAL: EVENT DETAILS -->
+    <div class="modal-backdrop" id="eventModal" onclick="closeModal(event)">
+        <div class="modal-content" id="modalCard">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle"></div>
+                <div class="modal-close" onclick="closeModal(null, true)"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+
+            <div class="prob-badge" id="modalProb">0%</div>
+
+            <div class="info-row">
+                <div class="info-label"><i class="fa-solid fa-warehouse"></i> Склад</div>
+                <div class="info-value" id="modalSklad">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label"><i class="fa-solid fa-cubes-stacked"></i> Штабель</div>
+                <div class="info-value" id="modalPile">-</div>
+            </div>
+            <div class="info-row">
+                <div class="info-label"><i class="fa-solid fa-weight-hanging"></i> Масса угля</div>
+                <div class="info-value" id="modalMass">-</div>
+            </div>
+            <div class="info-row" style="border:none">
+                <div class="info-label"><i class="fa-regular fa-calendar"></i> Дата прогноза</div>
+                <div class="info-value" id="modalDate">-</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+
+        <div id="loader-overlay">
+            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;">
+                <i class="fa-solid fa-microchip fa-spin"></i>
+            </div>
+            <h2 style="font-weight: 300;">AI Анализирует данные...</h2>
+        </div>
+
+        <header>
+            <div class="logo">
+                <i class="fa-solid fa-fire-flame-curved" style="color: #f43f5e;"></i>
+                GLOWBYTE <span style="font-weight:300; color:white;">AI</span>
+            </div>
+            <div class="status-badge">
+                <i class="fa-solid fa-wifi"></i> Система активна
+            </div>
+        </header>
+
+        <!-- SCREEN 1: UPLOAD -->
+        <div id="upload-screen">
+            <h1 style="font-size: 2.5rem; margin: 0;">Мониторинг пожарной опасности</h1>
+            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 30px;">Загрузите данные для анализа
+            </p>
+
+            <div class="cards-row">
+                <div class="upload-card" id="card-weather">
+                    <i class="fa-solid fa-cloud-sun-rain"></i>
+                    <h3>Погода</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-muted)">weather.csv</span>
+                    <input type="file" id="weatherFile" accept=".csv" onchange="fileSelected(this, 'card-weather')">
+                </div>
+                <div class="upload-card" id="card-supplies">
+                    <i class="fa-solid fa-ship"></i>
+                    <h3>Поставки</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-muted)">supplies.csv</span>
+                    <input type="file" id="suppliesFile" accept=".csv" onchange="fileSelected(this, 'card-supplies')">
+                </div>
+                <div class="upload-card" id="card-temp">
+                    <i class="fa-solid fa-temperature-high"></i>
+                    <h3>Температура</h3>
+                    <span style="font-size: 0.8rem; color: var(--text-muted)">temperature.csv</span>
+                    <input type="file" id="tempFile" accept=".csv" onchange="fileSelected(this, 'card-temp')">
+                </div>
+            </div>
+
+            <button class="btn-start" onclick="runAnalysis()">
+                <i class="fa-solid fa-bolt"></i> Запустить анализ
+            </button>
+        </div>
+
+        <!-- SCREEN 2: DASHBOARD -->
+        <div id="dashboard-screen">
+            <div class="calendar-container">
+                <!-- Тут либо Month, либо List -->
+                <div id="calendar"></div>
+
+                <div id="risksView">
+                    <div class="risks-header-bar">
+                        <div class="risks-title">
+                            <i class="fa-solid fa-list"></i>
+                            Возможные возгорания
+                        </div>
+                        <div class="risks-count-badge" id="risksCountLabel">0 записей</div>
+                    </div>
+                    <div class="risks-list" id="risksList">
+                        <!-- Карточки рисков наполняются через JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="widget"
+                    style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <div
+                        style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                        Критические риски</div>
+                    <div id="risk-counter"
+                        style="font-size: 4rem; font-weight: 800; color: var(--danger); line-height: 1;">0</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">штабелей под угрозой
+                    </div>
+                </div>
+
+                <div class="widget" style="position: relative;">
+                    <canvas id="pieChart"></canvas>
+                </div>
+
+                <button onclick="location.reload()"
+                    style="padding: 15px; background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); border-radius: 12px; cursor: pointer; width: 100%;">
+                    <i class="fa-solid fa-rotate-left"></i> Новый анализ
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:8080/predict-fire-risk";
+        let calendar;
+        let currentRisks = [];
+        let isListMode = false;
+
+        // --- MODAL: EVENT DETAILS ---
+        function openModal(props) {
+            const modal = document.getElementById('eventModal');
+            const card = document.getElementById('modalCard');
+            const titleDiv = document.getElementById('modalTitle');
+
+            card.className = 'modal-content'; // Reset
+            if (props.prob > 0.7) {
+                card.classList.add('glow-red');
+                titleDiv.innerHTML = `<i class="fa-solid fa-fire" style="color:var(--danger)"></i> ВЫСОКИЙ РИСК`;
+            } else {
+                card.classList.add('glow-orange');
+                titleDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> ПРЕДУПРЕЖДЕНИЕ`;
+            }
+
+            document.getElementById('modalProb').textContent = (props.prob * 100).toFixed(1) + '%';
+            document.getElementById('modalSklad').textContent = `№ ${props.sklad}`;
+            document.getElementById('modalPile').textContent = `№ ${props.pile}`;
+            document.getElementById('modalMass').textContent = `${props.mass} тн`;
+            document.getElementById('modalDate').textContent = props.date;
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal(e, force = false) {
+            if (force || (e && e.target && e.target.id === 'eventModal')) {
+                document.getElementById('eventModal').style.display = 'none';
+            }
+        }
+
+        // --- FILE UPLOAD UI ---
+        function fileSelected(input, cardId) {
+            if (input.files[0]) {
+                const card = document.getElementById(cardId);
+                card.classList.add('done');
+                card.querySelector('h3').textContent = input.files[0].name;
+                card.querySelector('i').className = "fa-solid fa-circle-check";
+            }
+        }
+
+        // --- MODE SWITCH: MONTH / LIST ---
+        function setMode(mode) {
+            const calEl = document.getElementById('calendar');
+            const listEl = document.getElementById('risksView');
+            const toolbar = document.querySelector('.fc-header-toolbar');
+            const monthBtn = toolbar ? toolbar.querySelector('.fc-monthView-button') : null;
+            const listBtn = toolbar ? toolbar.querySelector('.fc-listView-button') : null;
+
+            if (mode === 'month') {
+                calEl.style.display = 'block';
+                listEl.style.display = 'none';
+                calendar.changeView('dayGridMonth');
+
+                if (monthBtn) monthBtn.classList.add('fc-button-active');
+                if (listBtn) listBtn.classList.remove('fc-button-active');
+
+                isListMode = false;
+            } else {
+                // Обновляем список при переходе в режим List
+                if (!currentRisks || currentRisks.length === 0) {
+                    renderRisksList([]);
+                } else {
+                    renderRisksList(currentRisks);
+                }
+
+                calEl.style.display = 'none';
+                listEl.style.display = 'flex';
+
+                if (monthBtn) monthBtn.classList.remove('fc-button-active');
+                if (listBtn) listBtn.classList.add('fc-button-active');
+
+                isListMode = true;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const calendarEl = document.getElementById('calendar');
+
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'ru',
+                height: '100%',
+                customButtons: {
+                    monthView: {
+                        text: 'Month',
+                        click: function () {
+                            setMode('month');
+                        }
+                    },
+                    listView: {
+                        text: 'List',
+                        click: function () {
+                            setMode(isListMode ? 'month' : 'list');
+                        }
+                    }
+                },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'monthView,listView'
+                },
+                eventContent: function (arg) {
+                    const props = arg.event.extendedProps;
+                    const styleClass = props.prob > 0.7 ? 'risk-high' : 'risk-med';
+                    const icon = props.prob > 0.7 ? 'fa-fire' : 'fa-triangle-exclamation';
+
+                    return {
+                        html: `<div class="event-pill ${styleClass}">
+                                <i class="fa-solid ${icon}"></i>
+                                <span>Скл.${props.sklad}/Шт.${props.pile}</span>
+                               </div>`
+                    };
+                },
+                eventClick: function (info) {
+                    const p = info.event.extendedProps;
+                    p.date = info.event.startStr;
+                    openModal(p);
+                },
+                noEventsContent: {
+                    html: `
+                        <div class="empty-state-container">
+                            <div style="position:relative">
+                                <div class="empty-icon"><i class="fa-solid fa-robot"></i></div>
+                                <div class="zzz-anim">Zzz...</div>
+                            </div>
+                            <h2 style="font-weight:300; margin:0; color:white;">Всё спокойно</h2>
+                            <p style="opacity:0.7">Рисков возгорания не обнаружено</p>
+                        </div>
+                    `
+                }
+            });
+        });
+
+        // --- RUN ANALYSIS ---
+        async function runAnalysis() {
+            const files = [
+                document.getElementById('weatherFile').files[0],
+                document.getElementById('suppliesFile').files[0],
+                document.getElementById('tempFile').files[0]
+            ];
+
+            if (files.some(f => !f)) {
+                alert("⚠️ Выберите все 3 файла!");
+                return;
+            }
+
+            document.getElementById('loader-overlay').style.display = 'flex';
+
+            const formData = new FormData();
+            formData.append('weather_file', files[0]);
+            formData.append('supplies_file', files[1]);
+            formData.append('temperature_file', files[2]);
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: formData });
+                if (!res.ok) throw new Error("Network Error");
+                const data = await res.json();
+
+                if (data.status === 'error') throw new Error(data.message);
+
+                renderData(data);
+
+                document.getElementById('loader-overlay').style.display = 'none';
+                document.getElementById('upload-screen').style.display = 'none';
+                document.getElementById('dashboard-screen').style.display = 'flex';
+
+                setTimeout(() => {
+                    calendar.render();
+                    calendar.updateSize();
+                    setMode('month'); // по умолчанию Month активен
+                }, 100);
+
+            } catch (err) {
+                document.getElementById('loader-overlay').style.display = 'none';
+                alert("Ошибка: " + err.message);
+            }
+        }
+
+        // --- RENDER LIQUID GLASS RISK LIST ---
+        function renderRisksList(risks) {
+            const list = document.getElementById('risksList');
+            const label = document.getElementById('risksCountLabel');
+            if (!list || !label) return;
+
+            list.innerHTML = '';
+            label.textContent = `${risks.length} записей`;
+
+            if (!risks || risks.length === 0) {
+                const empty = document.createElement('div');
+                empty.style.fontSize = '0.85rem';
+                empty.style.color = 'var(--text-muted)';
+                empty.style.textAlign = 'center';
+                empty.style.marginTop = '10px';
+                empty.textContent = 'Нет обнаруженных рисков (порог > 10%) или анализ ещё не выполнен.';
+                list.appendChild(empty);
+                return;
+            }
+
+            risks.forEach(r => {
+                const prob = r.fire_probability || 0;
+                const probPct = (prob * 100).toFixed(1);
+                const isHigh = prob > 0.7;
+
+                const card = document.createElement('div');
+                card.className = 'risk-card ' + (isHigh ? 'risk-card-high' : 'risk-card-med');
+
+                const mainRow = document.createElement('div');
+                mainRow.className = 'risk-main-row';
+
+                const left = document.createElement('div');
+                left.className = 'risk-chips';
+
+                const levelChip = document.createElement('div');
+                levelChip.className = 'chip ' + (isHigh ? 'chip-high' : 'chip-med');
+                levelChip.innerHTML = isHigh
+                    ? '<i class="fa-solid fa-fire"></i> Высокий риск'
+                    : '<i class="fa-solid fa-triangle-exclamation"></i> Предупреждение';
+
+                const location = document.createElement('div');
+                location.className = 'risk-location';
+                location.textContent = `Скл. ${r["Склад"]} • Шт. ${r["Штабель"]}`;
+
+                left.appendChild(levelChip);
+                left.appendChild(location);
+
+                const probChip = document.createElement('div');
+                probChip.className = 'chip chip-prob';
+                probChip.innerHTML = `<i class="fa-solid fa-burn"></i> ${probPct}%`;
+
+                mainRow.appendChild(left);
+                mainRow.appendChild(probChip);
+
+                const subRow = document.createElement('div');
+                subRow.className = 'risk-sub-row';
+
+                const massSpan = document.createElement('span');
+                massSpan.innerHTML = `<i class="fa-solid fa-weight-hanging"></i> ${Math.round(r["Масса угля"])} тн`;
+
+                const dateSpan = document.createElement('span');
+                dateSpan.innerHTML = `<i class="fa-regular fa-calendar"></i> ${r.date}`;
+
+                subRow.appendChild(massSpan);
+                subRow.appendChild(dateSpan);
+
+                card.appendChild(mainRow);
+                card.appendChild(subRow);
+
+                card.addEventListener('click', () => {
+                    // Прыгаем к дате в календаре и открываем модал
+                    calendar.gotoDate(r.date);
+                    openModal({
+                        prob,
+                        sklad: r["Склад"],
+                        pile: r["Штабель"],
+                        mass: Math.round(r["Масса угля"]),
+                        date: r.date
+                    });
+                });
+
+                list.appendChild(card);
+            });
+        }
+
+        // --- RENDER DASHBOARD DATA ---
+        function renderData(data) {
+            const risks = data.top_risks;
+            currentRisks = risks;
+
+            document.getElementById('risk-counter').textContent = data.high_risk_count;
+
+            calendar.removeAllEvents();
+            if (risks.length > 0) calendar.gotoDate(risks[0].date);
+
+            const events = risks.map(r => ({
+                start: r.date,
+                extendedProps: {
+                    sklad: r["Склад"],
+                    pile: r["Штабель"],
+                    prob: r.fire_probability,
+                    mass: Math.round(r['Масса угля'])
+                }
+            }));
+            calendar.addEventSource(events);
+
+            const ctx = document.getElementById('pieChart').getContext('2d');
+            const whData = data.warehouse_stats;
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(whData).map(k => `Склад ${k}`),
+                    datasets: [{
+                        data: Object.values(whData),
+                        backgroundColor: ['#3b82f6', '#8b5cf6', '#f43f5e', '#f59e0b'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+                }
+            });
+
+            // Подготовим список для режима List (поскольку List заменяет Month)
+            renderRisksList(risks);
+        }
+    </script>
+</body>
+
+</html>
