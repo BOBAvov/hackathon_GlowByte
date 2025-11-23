@@ -4,6 +4,19 @@ import numpy as np
 
 from internal import config
 
+
+def get_saved_data(filename):
+    path = config.DATA_DIR / filename
+    with open(path, 'rb') as f:
+        return f.read()
+
+
+def save_file(filename, data: bytes):
+    path = config.DATA_DIR / filename
+    with open(path, 'wb') as f:
+        f.write(data)
+
+
 def prepare_data(weather_content, supplies_content, temperature_content):
     try:
         # 1. Чтение
@@ -12,13 +25,13 @@ def prepare_data(weather_content, supplies_content, temperature_content):
         temperature = pd.read_csv(io.BytesIO(temperature_content))
 
         # 2. Предобработка
-        weather["date"] = pd.to_datetime(weather["date"], errors='coerce')
-        weather["date_norm"] = weather["date"].dt.normalize()
+        weather['date'] = pd.to_datetime(weather['date'], errors='coerce')
+        weather['date_norm'] = weather['date'].dt.normalize()
 
-        supplies["start_date"] = pd.to_datetime(supplies["ВыгрузкаНаСклад"], errors='coerce')
-        supplies["end_date"] = pd.to_datetime(supplies["ПогрузкаНаСудно"], errors='coerce')
+        supplies['start_date'] = pd.to_datetime(supplies['ВыгрузкаНаСклад'], errors='coerce')
+        supplies['end_date'] = pd.to_datetime(supplies['ПогрузкаНаСудно'], errors='coerce')
 
-        temperature["date"] = pd.to_datetime(temperature["Дата акта"], errors='coerce')
+        temperature['date'] = pd.to_datetime(temperature['Дата акта'], errors='coerce')
         if 'Марка' in temperature.columns:
             temperature['Марка'] = temperature['Марка'].astype(str).apply(lambda x: x.split('-')[0])
 
@@ -58,7 +71,7 @@ def prepare_data(weather_content, supplies_content, temperature_content):
                 res_supplies = pd.concat([res_supplies, local_df], ignore_index=True)
 
         if res_supplies.empty:
-            return {"status": "error", "message": "Empty supplies data"}
+            return {'status': 'error', 'message': 'Empty supplies data'}
 
         # 4. Мердж данных
         res_supplies['date'] = pd.to_datetime(res_supplies['date'])
@@ -91,22 +104,22 @@ def prepare_data(weather_content, supplies_content, temperature_content):
         return full_df
     
     except Exception as e:
-        print(f"Data preparation error: {e}")
+        print(f'Data preparation error: {e}')
         import traceback
         traceback.print_exc()
         return {
-            "status": "error",
-            "message": str(e)
+            'status': 'error',
+            'message': str(e)
         }
 
 
 
 def process_data_pipeline(weather_content, supplies_content, temperature_content):
     full_df = prepare_data(weather_content, supplies_content, temperature_content)
-    if isinstance(full_df, dict) and full_df.get("status") == "error":
+    if isinstance(full_df, dict) and full_df.get('status') == 'error':
         return {
-            "status": "error",
-            "message": "Failed to prepare data"
+            'status': 'error',
+            'message': 'Failed to prepare data'
         }
     
     try:
@@ -163,18 +176,18 @@ def process_data_pipeline(weather_content, supplies_content, temperature_content
                                                                                ascending=False).head(200)
 
         return {
-            "status": "success",
-            "total_records": len(result_df),
-            "high_risk_count": int(result_df['is_dangerous'].sum()),
-            "top_risks": top_risks.to_dict(orient='records'),
-            "warehouse_stats": result_df.groupby('Склад')['is_dangerous'].sum().to_dict()
+            'status': 'success',
+            'total_records': len(result_df),
+            'high_risk_count': int(result_df['is_dangerous'].sum()),
+            'top_risks': top_risks.to_dict(orient='records'),
+            'warehouse_stats': result_df.groupby('Склад')['is_dangerous'].sum().to_dict()
         }
 
     except Exception as e:
-        print(f"Pipeline Error: {e}")
+        print(f'Pipeline Error: {e}')
         import traceback
         traceback.print_exc()
         return {
-            "status": "error",
-            "message": str(e)
+            'status': 'error',
+            'message': str(e)
         }
