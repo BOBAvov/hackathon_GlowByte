@@ -4,8 +4,7 @@ import numpy as np
 
 from internal import config
 
-
-def process_data_pipeline(weather_content, supplies_content, temperature_content):
+def prepare_data(weather_content, supplies_content, temperature_content):
     try:
         # 1. Чтение
         weather = pd.read_csv(io.BytesIO(weather_content))
@@ -88,7 +87,29 @@ def process_data_pipeline(weather_content, supplies_content, temperature_content
 
         if 'visibility' in full_df.columns:
             full_df.drop(columns=['visibility'], inplace=True)
+        
+        return full_df
+    
+    except Exception as e:
+        print(f"Data preparation error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "status": "error",
+            "message": str(e)
+        }
 
+
+
+def process_data_pipeline(weather_content, supplies_content, temperature_content):
+    full_df = prepare_data(weather_content, supplies_content, temperature_content)
+    if isinstance(full_df, dict) and full_df.get("status") == "error":
+        return {
+            "status": "error",
+            "message": "Failed to prepare data"
+        }
+    
+    try:
         # 5. Генерация признаков
         df_feat = full_df.sort_values(by=['Склад', 'Штабель', 'date'])
         base_features = ['t', 'humidity', 'wind_dir', 'v_avg', 'Масса угля', 'Максимальная температура']
@@ -153,4 +174,7 @@ def process_data_pipeline(weather_content, supplies_content, temperature_content
         print(f"Pipeline Error: {e}")
         import traceback
         traceback.print_exc()
-        return {"status": "error", "message": str(e)}
+        return {
+            "status": "error",
+            "message": str(e)
+        }
