@@ -1,7 +1,13 @@
 import os
 import xgboost as xgb
+
+from pathlib import Path
+
 MODEL_PATH = "coal_fire_model.json"
+
 ml_model = None
+
+DATA_DIR = Path('/app/data')
 
 def loadConfig():
     if os.path.exists(MODEL_PATH):
