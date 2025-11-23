@@ -4,639 +4,626 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlowByte: Fire Monitor AI</title>
+    <title>GlowByte FireGuard AI v5.0</title>
 
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;500&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- Libs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 
     <style>
+        /* --- THEME --- */
         :root {
+            --bg-body: #0f172a;
+            --bg-panel: rgba(30, 41, 59, 0.7);
             --primary: #3b82f6;
-            --accent: #8b5cf6;
-            --danger: #f43f5e;
-            --danger-glow: rgba(244, 63, 94, 0.6);
+            --primary-hover: #2563eb;
+            --danger: #ef4444;
             --warning: #f59e0b;
-            --warning-glow: rgba(245, 158, 11, 0.6);
             --success: #10b981;
-            --bg-dark: #0f172a;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.02);
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 16px;
         }
 
         * {
             box-sizing: border-box;
+            outline: none;
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
-            background-color: var(--bg-dark);
-            background-image:
-                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            background-image: radial-gradient(circle at top center, rgba(59, 130, 246, 0.15), transparent 40%);
             color: var(--text-main);
             margin: 0;
             height: 100vh;
-            width: 100vw;
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
 
-        /* --- CONTAINER --- */
-        .app-container {
-            width: 95vw;
-            height: 90vh;
-            max-width: 1920px;
-            aspect-ratio: 16/9;
-            background: rgba(15, 23, 42, 0.6);
-            border: none;
-            backdrop-filter: blur(20px);
-            border-radius: 30px;
+        /* --- LAYOUT --- */
+        .app-wrapper {
+            width: 98vw;
+            height: 95vh;
+            max-width: 1800px;
+            background: var(--bg-panel);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             display: flex;
             flex-direction: column;
-            padding: 30px;
-            position: relative;
             overflow: hidden;
         }
 
-        /* --- HEADER --- */
         header {
+            padding: 12px 24px;
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
         }
 
-        .logo {
-            font-size: 1.8rem;
+        .brand {
+            font-size: 1.3rem;
             font-weight: 800;
-            background: linear-gradient(to right, #60a5fa, #c084fc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
 
-        .status-badge {
-            background: rgba(16, 185, 129, 0.1);
-            color: #34d399;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            border: 1px solid rgba(16, 185, 129, 0.2);
+        .brand i {
+            color: var(--danger);
         }
 
-        /* --- UPLOAD SCREEN --- */
-        #upload-screen {
-            flex: 1;
+        .connection-status {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 99px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            gap: 40px;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .cards-row {
-            display: flex;
-            gap: 30px;
-            width: 100%;
-            justify-content: center;
-        }
-
-        .upload-card {
-            width: 280px;
-            height: 320px;
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-        }
-
-        .upload-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.07);
-            border-color: var(--primary);
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
-        }
-
-        .upload-card i {
-            font-size: 3.5rem;
-            margin-bottom: 20px;
-            color: var(--text-muted);
+            gap: 8px;
             transition: 0.3s;
         }
 
-        .upload-card.done {
-            border-color: #10b981;
-            background: rgba(16, 185, 129, 0.05);
+        .status-online {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
-        .upload-card.done i {
-            color: #10b981;
+        .status-offline {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
-        .upload-card input {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .btn-start {
-            padding: 20px 60px;
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: white;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
-            transition: transform 0.2s;
+        /* --- TABS --- */
+        .tabs-nav {
             display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .btn-start:hover {
-            transform: scale(1.05);
-        }
-
-        /* --- DASHBOARD --- */
-        #dashboard-screen {
-            display: none;
-            flex: 1;
-            gap: 20px;
-            overflow: hidden;
-            height: 100%;
-        }
-
-        .calendar-container {
-            flex: 3;
-            background: var(--glass);
-            border-radius: 20px;
-            border: none;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .widget {
-            background: var(--glass);
-            border: none;
-            border-radius: 20px;
-            padding: 20px;
-            flex: 1;
-        }
-
-        /* --- FULLCALENDAR STYLING --- */
-        .fc {
-            height: 100%;
-        }
-
-        .fc-theme-standard td,
-        .fc-theme-standard th,
-        .fc-scrollgrid {
-            border: none !important;
-        }
-
-        .fc-col-header-cell {
-            padding: 15px 0;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 1px;
-        }
-
-        .fc-daygrid-day-number {
-            color: var(--text-main);
-            opacity: 0.7;
-            padding: 10px;
-        }
-
-        .fc-daygrid-day:hover {
-            background: rgba(255, 255, 255, 0.02);
+            gap: 4px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px;
             border-radius: 10px;
         }
 
-        .fc-event {
-            border: none !important;
-            background: transparent !important;
-            margin-top: 4px;
+        .tab-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
             cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+            font-size: 0.9rem;
         }
 
-        .event-pill {
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
+        .tab-btn.active {
+            background: var(--primary);
             color: white;
         }
 
-        .event-pill:hover {
-            transform: scale(1.05) translateY(-2px);
+        /* --- VIEWS --- */
+        .view-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .view {
+            position: absolute;
+            inset: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(10px);
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .view.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
             z-index: 10;
         }
 
-        .risk-high {
-            background: linear-gradient(135deg, #ef4444, #be123c);
-            box-shadow: 0 4px 15px var(--danger-glow);
-            border-left: 3px solid white;
+        /* --- DASHBOARD GRID --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 20px;
+            height: 100%;
+            overflow: hidden;
         }
 
-        .risk-med {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-            box-shadow: 0 4px 15px var(--warning-glow);
-            border-left: 3px solid rgba(255, 255, 255, 0.7);
-        }
-
-        .fc-button {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: none !important;
-            color: white !important;
-            text-transform: capitalize;
-            border-radius: 8px !important;
-        }
-
-        .fc-button-active {
-            background: var(--primary) !important;
-        }
-
-        .fc-toolbar-title {
-            font-size: 1.5rem !important;
-        }
-
-        /* --- EMPTY STATE --- */
-        .empty-state-container {
+        .col-main {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: 16px;
             height: 100%;
-            color: var(--text-muted);
-            animation: fadeIn 1s ease;
+            overflow: hidden;
         }
 
-        .empty-icon {
-            font-size: 5rem;
-            color: var(--success);
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-            text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
-        }
-
-        .zzz-anim {
-            position: absolute;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--success);
-            opacity: 0;
-            animation: zzz 2s infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-15px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        @keyframes zzz {
-            0% {
-                transform: translate(20px, -10px) scale(0.5);
-                opacity: 0;
-            }
-
-            50% {
-                opacity: 1;
-            }
-
-            100% {
-                transform: translate(40px, -40px) scale(1.2);
-                opacity: 0;
-            }
-        }
-
-        /* --- MODAL (EVENT DETAILS) --- */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        .modal-content {
-            width: 400px;
-            background: #1e293b;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px;
-            position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transform: scale(0.9);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-
-        .modal-content.glow-red {
-            border-color: var(--danger);
-            box-shadow: 0 0 40px var(--danger-glow);
-        }
-
-        .modal-content.glow-orange {
-            border-color: var(--warning);
-            box-shadow: 0 0 40px var(--warning-glow);
-        }
-
-        .modal-header {
+        .col-side {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .modal-close {
-            cursor: pointer;
-            font-size: 1.2rem;
-            color: var(--text-muted);
-            transition: 0.2s;
-        }
-
-        .modal-close:hover {
-            color: white;
-        }
-
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .info-label {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .info-value {
-            font-weight: 600;
-            font-size: 1.1rem;
-        }
-
-        .prob-badge {
-            font-size: 2.5rem;
-            font-weight: 800;
-            text-align: center;
-            margin: 20px 0;
-            background: linear-gradient(to right, #fff, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        #loader-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.9);
-            backdrop-filter: blur(15px);
-            z-index: 999;
-            display: none;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* --- LIQUID GLASS LIST VIEW --- */
-        #risksView {
-            display: none;
-            flex: 1;
             flex-direction: column;
+            gap: 16px;
             height: 100%;
+            overflow: hidden;
         }
 
-        .risks-header-bar {
+        .panel {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            flex-direction: column;
         }
 
-        .risks-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.95rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-
-        .risks-count-badge {
-            padding: 4px 10px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            color: #e5e7eb;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(148, 163, 184, 0.6);
-        }
-
-        .risks-list {
+        .panel-calendar {
             flex: 1;
             min-height: 0;
+            overflow: hidden;
+        }
+
+        /* --- WEATHER WIDGET --- */
+        .weather-widget {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(37, 99, 235, 0.05));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 16px 24px;
+            border-radius: 16px;
+            flex-shrink: 0;
+        }
+
+        .w-item {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .w-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            font-family: 'JetBrains Mono';
+        }
+
+        .w-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-transform: uppercase;
+        }
+
+        /* --- SIDEBAR LIST --- */
+        .risk-list-container {
+            flex: 1;
             overflow-y: auto;
-            padding-right: 6px;
+            padding-right: 5px;
         }
 
-        .risks-list::-webkit-scrollbar {
-            width: 6px;
+        /* Custom Scrollbar */
+        .risk-list-container::-webkit-scrollbar {
+            width: 4px;
         }
 
-        .risks-list::-webkit-scrollbar-track {
+        .risk-list-container::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .risks-list::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.5);
-            border-radius: 999px;
+        .risk-list-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
         }
 
         .risk-card {
-            position: relative;
-            padding: 10px 12px;
-            border-radius: 16px;
-            background: radial-gradient(circle at top left,
-                    rgba(148, 163, 184, 0.35),
-                    rgba(15, 23, 42, 0.95));
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            box-shadow:
-                0 16px 45px rgba(15, 23, 42, 0.95),
-                0 0 0 1px rgba(15, 23, 42, 0.8) inset;
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid transparent;
             cursor: pointer;
-            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease,
-                background 0.18s ease;
+            transition: 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .risk-card:hover {
-            transform: translateY(-3px);
-            box-shadow:
-                0 22px 55px rgba(15, 23, 42, 0.95),
-                0 0 0 1px rgba(248, 250, 252, 0.4) inset;
-            border-color: rgba(248, 250, 252, 0.45);
+            background: rgba(255, 255, 255, 0.07);
+            transform: translateX(2px);
         }
 
-        .risk-card-high {
-            background: radial-gradient(circle at top left,
-                    rgba(248, 113, 113, 0.55),
-                    rgba(15, 23, 42, 0.96));
-            border-color: rgba(248, 113, 113, 0.6);
-            box-shadow:
-                0 18px 55px rgba(239, 68, 68, 0.45),
-                0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        /* COLOR CODING */
+        .risk-high {
+            border-color: var(--danger);
         }
 
-        .risk-card-med {
-            background: radial-gradient(circle at top left,
-                    rgba(251, 191, 36, 0.55),
-                    rgba(15, 23, 42, 0.96));
-            border-color: rgba(251, 191, 36, 0.6);
-            box-shadow:
-                0 18px 55px rgba(251, 191, 36, 0.4),
-                0 0 0 1px rgba(15, 23, 42, 0.9) inset;
+        .risk-high .risk-prob {
+            color: var(--danger);
         }
 
-        .risk-main-row {
+        .risk-med {
+            border-color: var(--warning);
+        }
+
+        .risk-med .risk-prob {
+            color: var(--warning);
+        }
+
+        .risk-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.9rem;
+            color: #e2e8f0;
+        }
+
+        .risk-info span {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            display: block;
+        }
+
+        .risk-prob {
+            font-weight: 800;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono';
+        }
+
+        /* --- EMPTY STATE ANIMATION --- */
+        .empty-state {
+            height: 100%;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            color: var(--success);
+            text-align: center;
         }
 
-        .risk-chips {
+        .radar-container {
+            position: relative;
+            width: 100px;
+            height: 100px;
             display: flex;
-            gap: 6px;
+            justify-content: center;
             align-items: center;
-            flex-wrap: wrap;
+            margin-bottom: 20px;
         }
 
-        .chip {
-            padding: 3px 8px;
-            border-radius: 999px;
-            font-size: 0.7rem;
+        .radar-icon {
+            font-size: 3rem;
+            z-index: 2;
+            color: var(--success);
+        }
+
+        .radar-pulse {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid var(--success);
+            opacity: 0;
+            animation: radar 2s infinite linear;
+        }
+
+        .radar-pulse:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        @keyframes radar {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- CHARTS --- */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .chart-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-box.full-width {
+            grid-column: span 2;
+        }
+
+        .chart-canvas-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        /* --- UPLOAD STYLES --- */
+        .upload-layout {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .drop-zone {
+            background: rgba(255, 255, 255, 0.02);
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+            transform: translateY(-4px);
+        }
+
+        .drop-zone.filled {
+            border-color: var(--success);
+            border-style: solid;
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .drop-zone i {
+            font-size: 2rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+
+        .drop-zone.filled i {
+            color: var(--success);
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1rem;
             font-weight: 600;
-            display: inline-flex;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            transition: 0.2s;
+            display: flex;
             align-items: center;
-            gap: 5px;
-            background: rgba(15, 23, 42, 0.6);
-            border: 1px solid rgba(148, 163, 184, 0.5);
+            gap: 10px;
         }
 
-        .chip-high {
-            background: rgba(248, 113, 113, 0.16);
-            border-color: rgba(248, 113, 113, 0.8);
-            color: #fee2e2;
+        .cta-button:disabled {
+            background: var(--text-muted);
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
-        .chip-med {
-            background: rgba(251, 191, 36, 0.15);
-            border-color: rgba(251, 191, 36, 0.8);
-            color: #fffbeb;
+        /* --- COMPONENTS --- */
+        .stat-val {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--danger);
+            line-height: 1;
         }
 
-        .chip-prob {
-            background: rgba(15, 23, 42, 0.75);
-            border-color: rgba(148, 163, 184, 0.8);
-            color: #e5e7eb;
-            font-family: 'JetBrains Mono', monospace;
+        .stat-lbl {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 8px;
         }
 
-        .risk-location {
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover {
+            border-color: white;
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .export-group {
+            position: relative;
+            width: 100%;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            right: 0;
+            margin-bottom: 6px;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 50;
+        }
+
+        .export-group:hover .dropdown-content {
+            display: block;
+            animation: slideUp 0.2s;
+        }
+
+        .dd-item {
+            padding: 10px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .dd-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* --- FC & MODAL --- */
+        .fc {
+            --fc-border-color: rgba(255, 255, 255, 0.1);
             font-size: 0.85rem;
-            font-weight: 600;
-            color: #e5e7eb;
-            white-space: nowrap;
         }
 
-        .risk-sub-row {
+        .fc-col-header-cell {
+            padding: 8px 0 !important;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .fc-daygrid-day-number {
+            color: var(--text-muted);
+            padding: 4px 8px;
+        }
+
+        .fc-scroller {
+            overflow: hidden !important;
+        }
+
+        .event-pill {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* CSS классы для событий календаря генерируются динамически, но должны совпадать */
+        .evt-high {
+            background: var(--danger);
+            border: none;
+        }
+
+        .evt-med {
+            background: var(--warning);
+            color: #1e293b;
+            border: none;
+        }
+
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.9);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay.show {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.75rem;
-            color: #cbd5f5;
-            opacity: 0.9;
-            flex-wrap: wrap;
+            animation: fadeIn 0.3s;
         }
 
-        .risk-sub-row span {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            white-space: nowrap;
+        .modal-win {
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            width: 380px;
+            padding: 24px;
+            position: relative;
         }
 
-        .risk-sub-row i {
-            font-size: 0.75rem;
-            opacity: 0.9;
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(59, 130, 246, 0.2);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         @keyframes fadeIn {
@@ -649,459 +636,502 @@
             }
         }
 
-        @keyframes popIn {
+        @keyframes slideUp {
             from {
-                transform: scale(0.9);
                 opacity: 0;
+                transform: translateY(10px);
             }
 
             to {
-                transform: scale(1);
                 opacity: 1;
+                transform: translateY(0);
             }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: #1e293b;
+            border-left: 4px solid var(--primary);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            display: flex;
+            gap: 10px;
+            animation: fadeIn 0.3s;
+            font-size: 0.9rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- MODAL: EVENT DETAILS -->
-    <div class="modal-backdrop" id="eventModal" onclick="closeModal(event)">
-        <div class="modal-content" id="modalCard">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle"></div>
-                <div class="modal-close" onclick="closeModal(null, true)"><i class="fa-solid fa-xmark"></i></div>
-            </div>
+    <div class="toast-container" id="toastArea"></div>
 
-            <div class="prob-badge" id="modalProb">0%</div>
-
-            <div class="info-row">
-                <div class="info-label"><i class="fa-solid fa-warehouse"></i> Склад</div>
-                <div class="info-value" id="modalSklad">-</div>
+    <!-- MODAL DETAILS -->
+    <div class="overlay" id="modalOverlay" onclick="UI.closeModal(event)">
+        <div class="modal-win">
+            <div style="position: absolute; top: 16px; right: 16px; cursor: pointer;"
+                onclick="UI.closeModal(null, true)"><i class="fa-solid fa-xmark"></i></div>
+            <h3 id="mTitle" style="margin: 0 0 16px 0; display: flex; align-items: center; gap: 10px;"></h3>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div id="mScore" style="font-size: 2.5rem; font-weight: 800;"></div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Вероятность возгорания</div>
             </div>
-            <div class="info-row">
-                <div class="info-label"><i class="fa-solid fa-cubes-stacked"></i> Штабель</div>
-                <div class="info-value" id="modalPile">-</div>
+            <div class="detail-row"
+                style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                <span style="color:var(--text-muted); font-size:0.9rem;">Склад / Штабель</span><span id="mLoc"
+                    style="font-weight:600"></span>
             </div>
-            <div class="info-row">
-                <div class="info-label"><i class="fa-solid fa-weight-hanging"></i> Масса угля</div>
-                <div class="info-value" id="modalMass">-</div>
+            <div class="detail-row"
+                style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border);">
+                <span style="color:var(--text-muted); font-size:0.9rem;">Масса угля</span><span id="mMass"
+                    style="font-weight:600"></span>
             </div>
-            <div class="info-row" style="border:none">
-                <div class="info-label"><i class="fa-regular fa-calendar"></i> Дата прогноза</div>
-                <div class="info-value" id="modalDate">-</div>
+            <div class="detail-row" style="display:flex; justify-content:space-between; padding:8px 0;">
+                <span style="color:var(--text-muted); font-size:0.9rem;">Дата прогноза</span><span id="mDate"
+                    style="font-weight:600"></span>
             </div>
         </div>
     </div>
 
-    <div class="app-container">
+    <!-- LOADER -->
+    <div class="overlay" id="loaderOverlay">
+        <div class="loader"></div>
+        <h3 style="color:white; font-weight:400;">AI анализирует данные...</h3>
+    </div>
 
-        <div id="loader-overlay">
-            <div style="font-size: 3rem; color: var(--primary); margin-bottom: 20px;">
-                <i class="fa-solid fa-microchip fa-spin"></i>
-            </div>
-            <h2 style="font-weight: 300;">AI Анализирует данные...</h2>
-        </div>
-
+    <div class="app-wrapper">
         <header>
-            <div class="logo">
-                <i class="fa-solid fa-fire-flame-curved" style="color: #f43f5e;"></i>
-                GLOWBYTE <span style="font-weight:300; color:white;">AI</span>
+            <div class="brand"><i class="fa-solid fa-fire-flame-curved"></i> GlowByte AI</div>
+
+            <div class="tabs-nav" id="tabNav" style="display: none;">
+                <button class="tab-btn active" onclick="UI.switchTab('dashboard')">Мониторинг</button>
+                <button class="tab-btn" onclick="UI.switchTab('stats')">Статистика</button>
             </div>
-            <div class="status-badge">
-                <i class="fa-solid fa-wifi"></i> Система активна
+
+            <div class="connection-status status-offline" id="connStatus">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Connecting...
             </div>
         </header>
 
-        <!-- SCREEN 1: UPLOAD -->
-        <div id="upload-screen">
-            <h1 style="font-size: 2.5rem; margin: 0;">Мониторинг пожарной опасности</h1>
-            <p style="color: var(--text-muted); margin-top: -10px; margin-bottom: 30px;">Загрузите данные для анализа
-            </p>
-
-            <div class="cards-row">
-                <div class="upload-card" id="card-weather">
-                    <i class="fa-solid fa-cloud-sun-rain"></i>
-                    <h3>Погода</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-muted)">weather.csv</span>
-                    <input type="file" id="weatherFile" accept=".csv" onchange="fileSelected(this, 'card-weather')">
-                </div>
-                <div class="upload-card" id="card-supplies">
-                    <i class="fa-solid fa-ship"></i>
-                    <h3>Поставки</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-muted)">supplies.csv</span>
-                    <input type="file" id="suppliesFile" accept=".csv" onchange="fileSelected(this, 'card-supplies')">
-                </div>
-                <div class="upload-card" id="card-temp">
-                    <i class="fa-solid fa-temperature-high"></i>
-                    <h3>Температура</h3>
-                    <span style="font-size: 0.8rem; color: var(--text-muted)">temperature.csv</span>
-                    <input type="file" id="tempFile" accept=".csv" onchange="fileSelected(this, 'card-temp')">
-                </div>
-            </div>
-
-            <button class="btn-start" onclick="runAnalysis()">
-                <i class="fa-solid fa-bolt"></i> Запустить анализ
-            </button>
-        </div>
-
-        <!-- SCREEN 2: DASHBOARD -->
-        <div id="dashboard-screen">
-            <div class="calendar-container">
-                <!-- Тут либо Month, либо List -->
-                <div id="calendar"></div>
-
-                <div id="risksView">
-                    <div class="risks-header-bar">
-                        <div class="risks-title">
-                            <i class="fa-solid fa-list"></i>
-                            Возможные возгорания
+        <div class="view-container">
+            <!-- UPLOAD VIEW -->
+            <div class="view active" id="viewUpload">
+                <div class="upload-layout">
+                    <div style="text-align: center;">
+                        <h1>Центр загрузки</h1>
+                        <p style="color: var(--text-muted);">Загрузите данные (CSV) для анализа рисков</p>
+                    </div>
+                    <div class="upload-grid">
+                        <div class="drop-zone" id="zone-weather"
+                            onclick="document.getElementById('weatherFile').click()">
+                            <i class="fa-solid fa-cloud-sun"></i>
+                            <h3>Погода</h3><input type="file" id="weatherFile" hidden accept=".csv">
                         </div>
-                        <div class="risks-count-badge" id="risksCountLabel">0 записей</div>
+                        <div class="drop-zone" id="zone-supplies"
+                            onclick="document.getElementById('suppliesFile').click()">
+                            <i class="fa-solid fa-truck-ramp-box"></i>
+                            <h3>Поставки</h3><input type="file" id="suppliesFile" hidden accept=".csv">
+                        </div>
+                        <div class="drop-zone" id="zone-temp" onclick="document.getElementById('tempFile').click()">
+                            <i class="fa-solid fa-temperature-high"></i>
+                            <h3>Температура</h3><input type="file" id="tempFile" hidden accept=".csv">
+                        </div>
                     </div>
-                    <div class="risks-list" id="risksList">
-                        <!-- Карточки рисков наполняются через JS -->
+                    <button class="cta-button" id="btnAnalyze" onclick="App.runAnalysis()" disabled>
+                        <i class="fa-solid fa-bolt"></i> Начать анализ
+                    </button>
+                </div>
+            </div>
+
+            <!-- MONITORING VIEW -->
+            <div class="view" id="viewDashboard">
+                <div class="dashboard-grid">
+                    <!-- MAIN (Left) -->
+                    <div class="col-main">
+                        <!-- Weather Widget -->
+                        <div class="weather-widget" id="weatherWidget">
+                            <div class="w-item" style="align-items: flex-start;">
+                                <div class="w-label"><i class="fa-solid fa-calendar-day"></i> Прогноз на</div>
+                                <div class="w-val" style="font-size: 1rem;" id="wDate">--.--.----</div>
+                            </div>
+                            <div class="w-item">
+                                <div class="w-label"><i class="fa-solid fa-temperature-half"></i> Температура</div>
+                                <div class="w-val" id="wTemp">-</div>
+                            </div>
+                            <div class="w-item">
+                                <div class="w-label"><i class="fa-solid fa-droplet"></i> Влажность</div>
+                                <div class="w-val" id="wHum">-</div>
+                            </div>
+                            <div class="w-item">
+                                <div class="w-label"><i class="fa-solid fa-wind"></i> Ветер</div>
+                                <div class="w-val" id="wWind">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar -->
+                        <div class="panel panel-calendar">
+                            <div id="calendarEl" style="height: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- SIDE (Right) -->
+                    <div class="col-side">
+                        <div class="panel panel-auto" style="text-align: center; justify-content: center;">
+                            <div class="stat-lbl">Критические риски</div>
+                            <div class="stat-val" id="statRiskCount">0</div>
+                            <div class="stat-lbl">Штабелей под угрозой</div>
+                        </div>
+
+                        <!-- Risk List with Empty State -->
+                        <div class="panel"
+                            style="flex: 1; display: flex; flex-direction: column; overflow: hidden; padding: 12px;">
+                            <h4
+                                style="margin: 0 0 12px 0; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); padding-bottom: 8px;">
+                                Журнал рисков</h4>
+
+                            <!-- List Container -->
+                            <div id="riskListContainer" class="risk-list-container">
+                                <!-- JS Injects Cards Here -->
+                            </div>
+
+                            <!-- Empty State Animation -->
+                            <div id="emptyState" class="empty-state" style="display: none;">
+                                <div class="radar-container">
+                                    <div class="radar-pulse"></div>
+                                    <div class="radar-pulse"></div>
+                                    <i class="fa-solid fa-shield-halved radar-icon"></i>
+                                </div>
+                                <h3 style="margin:0">Всё спокойно</h3>
+                                <p style="color: var(--text-muted); font-size: 0.9rem;">Угроз не обнаружено</p>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="panel panel-auto" style="gap: 10px;">
+                            <div class="export-group">
+                                <div class="dropdown-content">
+                                    <div class="dd-item" onclick="App.exportData('csv')"><i
+                                            class="fa-solid fa-file-csv"></i> Скачать CSV</div>
+                                    <div class="dd-item" onclick="App.exportData('xlsx')"><i
+                                            class="fa-solid fa-file-excel"></i> Скачать Excel</div>
+                                </div>
+                                <button class="action-btn">
+                                    <i class="fa-solid fa-download"></i> Экспорт отчета
+                                </button>
+                            </div>
+                            <button class="action-btn" onclick="location.reload()">
+                                <i class="fa-solid fa-rotate-right"></i> Новый анализ
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="sidebar">
-                <div class="widget"
-                    style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-                    <div
-                        style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
-                        Критические риски</div>
-                    <div id="risk-counter"
-                        style="font-size: 4rem; font-weight: 800; color: var(--danger); line-height: 1;">0</div>
-                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 10px;">штабелей под угрозой
+            <!-- STATS VIEW -->
+            <div class="view" id="viewStats">
+                <div class="charts-grid">
+                    <div class="chart-box full-width">
+                        <h4
+                            style="margin:0 0 10px 0; font-size:0.95rem; color:var(--text-muted); text-transform: uppercase;">
+                            Динамика рисков (по дням)</h4>
+                        <div class="chart-canvas-wrapper"><canvas id="trendChart"></canvas></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4
+                            style="margin:0 0 10px 0; font-size:0.95rem; color:var(--text-muted); text-transform: uppercase;">
+                            Риски по типам угля</h4>
+                        <div class="chart-canvas-wrapper"><canvas id="typeChart"></canvas></div>
+                    </div>
+                    <div class="chart-box">
+                        <h4
+                            style="margin:0 0 10px 0; font-size:0.95rem; color:var(--text-muted); text-transform: uppercase;">
+                            Риски по складам</h4>
+                        <div class="chart-canvas-wrapper"><canvas id="whChart"></canvas></div>
                     </div>
                 </div>
-
-                <div class="widget" style="position: relative;">
-                    <canvas id="pieChart"></canvas>
-                </div>
-
-                <button onclick="location.reload()"
-                    style="padding: 15px; background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); border-radius: 12px; cursor: pointer; width: 100%;">
-                    <i class="fa-solid fa-rotate-left"></i> Новый анализ
-                </button>
             </div>
+
         </div>
-
     </div>
 
     <script>
-        const API_URL = "http://localhost:8080/predict-fire-risk";
-        let calendar;
-        let currentRisks = [];
-        let isListMode = false;
+        const CONFIG = {
+            API_URL: 'http://localhost:8080/api',
+            HIGH_RISK: 0.7
+        };
 
-        // --- MODAL: EVENT DETAILS ---
-        function openModal(props) {
-            const modal = document.getElementById('eventModal');
-            const card = document.getElementById('modalCard');
-            const titleDiv = document.getElementById('modalTitle');
+        const State = { files: {}, data: null, charts: {}, calendar: null };
 
-            card.className = 'modal-content'; // Reset
-            if (props.prob > 0.7) {
-                card.classList.add('glow-red');
-                titleDiv.innerHTML = `<i class="fa-solid fa-fire" style="color:var(--danger)"></i> ВЫСОКИЙ РИСК`;
-            } else {
-                card.classList.add('glow-orange');
-                titleDiv.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> ПРЕДУПРЕЖДЕНИЕ`;
-            }
+        const UI = {
+            toast(msg, type = 'success') {
+                const el = document.createElement('div');
+                el.className = 'toast';
+                el.style.borderLeftColor = type === 'error' ? 'var(--danger)' : 'var(--success)';
+                el.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-xmark' : 'fa-circle-check'}"></i> ${msg}`;
+                document.getElementById('toastArea').appendChild(el);
+                setTimeout(() => el.remove(), 4000);
+            },
 
-            document.getElementById('modalProb').textContent = (props.prob * 100).toFixed(1) + '%';
-            document.getElementById('modalSklad').textContent = `№ ${props.sklad}`;
-            document.getElementById('modalPile').textContent = `№ ${props.pile}`;
-            document.getElementById('modalMass').textContent = `${props.mass} тн`;
-            document.getElementById('modalDate').textContent = props.date;
+            setStatus(online) {
+                const el = document.getElementById('connStatus');
+                el.className = `connection-status ${online ? 'status-online' : 'status-offline'}`;
+                el.innerHTML = online ? '<i class="fa-solid fa-wifi"></i> Online' : '<i class="fa-solid fa-plug-circle-xmark"></i> API Error';
+            },
 
-            modal.style.display = 'flex';
-        }
+            updateFileUI(k, f) {
+                const zone = document.getElementById(`zone-${k}`);
+                zone.classList.add('filled');
+                zone.querySelector('h3').textContent = f.name;
+                zone.querySelector('i').className = 'fa-solid fa-circle-check';
+                if (State.files.weather && State.files.supplies && State.files.temp) document.getElementById('btnAnalyze').disabled = false;
+            },
 
-        function closeModal(e, force = false) {
-            if (force || (e && e.target && e.target.id === 'eventModal')) {
-                document.getElementById('eventModal').style.display = 'none';
-            }
-        }
+            toggleLoader(show) {
+                document.getElementById('loaderOverlay').classList.toggle('show', show);
+            },
 
-        // --- FILE UPLOAD UI ---
-        function fileSelected(input, cardId) {
-            if (input.files[0]) {
-                const card = document.getElementById(cardId);
-                card.classList.add('done');
-                card.querySelector('h3').textContent = input.files[0].name;
-                card.querySelector('i').className = "fa-solid fa-circle-check";
-            }
-        }
+            switchTab(tab) {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                event.target.classList.add('active');
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
 
-        // --- MODE SWITCH: MONTH / LIST ---
-        function setMode(mode) {
-            const calEl = document.getElementById('calendar');
-            const listEl = document.getElementById('risksView');
-            const toolbar = document.querySelector('.fc-header-toolbar');
-            const monthBtn = toolbar ? toolbar.querySelector('.fc-monthView-button') : null;
-            const listBtn = toolbar ? toolbar.querySelector('.fc-listView-button') : null;
-
-            if (mode === 'month') {
-                calEl.style.display = 'block';
-                listEl.style.display = 'none';
-                calendar.changeView('dayGridMonth');
-
-                if (monthBtn) monthBtn.classList.add('fc-button-active');
-                if (listBtn) listBtn.classList.remove('fc-button-active');
-
-                isListMode = false;
-            } else {
-                // Обновляем список при переходе в режим List
-                if (!currentRisks || currentRisks.length === 0) {
-                    renderRisksList([]);
-                } else {
-                    renderRisksList(currentRisks);
+                if (tab === 'dashboard') {
+                    document.getElementById('viewDashboard').classList.add('active');
+                    if (State.calendar) setTimeout(() => State.calendar.updateSize(), 100);
                 }
+                if (tab === 'stats') document.getElementById('viewStats').classList.add('active');
+            },
 
-                calEl.style.display = 'none';
-                listEl.style.display = 'flex';
+            // 1. WEATHER WIDGET FIX: Fallback data if undefined
+            renderWeather(r) {
+                // Если объекта риска нет или поля отсутствуют, показываем дефолт
+                const date = r?.date || new Date().toISOString().split('T')[0];
+                const t = (r?.t !== undefined && r.t !== null) ? Math.round(r.t) + '°C' : '20°C';
+                const hum = (r?.humidity !== undefined && r.humidity !== null) ? Math.round(r.humidity) + '%' : '50%';
+                const wind = (r?.v_avg !== undefined && r.v_avg !== null) ? r.v_avg.toFixed(1) + ' м/с' : '3.0 м/с';
 
-                if (monthBtn) monthBtn.classList.remove('fc-button-active');
-                if (listBtn) listBtn.classList.add('fc-button-active');
+                document.getElementById('wDate').textContent = date;
+                document.getElementById('wTemp').textContent = t;
+                document.getElementById('wHum').textContent = hum;
+                document.getElementById('wWind').textContent = wind;
+            },
 
-                isListMode = true;
+            renderModal(p) {
+                const isHigh = p.prob > CONFIG.HIGH_RISK;
+                document.getElementById('mTitle').innerHTML = isHigh
+                    ? `<i class="fa-solid fa-fire" style="color:var(--danger)"></i> КРИТИЧЕСКИЙ РИСК`
+                    : `<i class="fa-solid fa-triangle-exclamation" style="color:var(--warning)"></i> ВНИМАНИЕ`;
+
+                const score = document.getElementById('mScore');
+                score.textContent = (p.prob * 100).toFixed(0) + '%';
+                score.style.color = isHigh ? 'var(--danger)' : 'var(--warning)';
+
+                document.getElementById('mLoc').textContent = `${p.sklad} / ${p.pile}`;
+
+                let massDisplay = '-';
+                if (p.mass !== undefined && p.mass !== null) {
+                    const m = parseFloat(p.mass);
+                    if (!isNaN(m)) massDisplay = Math.round(m) + ' тн';
+                }
+                document.getElementById('mMass').textContent = massDisplay;
+                document.getElementById('mDate').textContent = p.date;
+
+                document.getElementById('modalOverlay').classList.add('show');
+            },
+
+            closeModal(e, force) {
+                if (force || e.target.id === 'modalOverlay') document.getElementById('modalOverlay').classList.remove('show');
             }
-        }
+        };
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const calendarEl = document.getElementById('calendar');
+        const API = {
+            async ping() {
+                try {
+                    let res = await fetch(`${CONFIG.API_URL}/ping`);
+                    if (res.ok) return true;
+                    res = await fetch(`${CONFIG.API_URL}/`);
+                    return res.ok;
+                } catch { return false; }
+            },
+            async uploadAndPredict() {
+                const fd = new FormData();
+                fd.append('weather_file', State.files.weather);
+                fd.append('supplies_file', State.files.supplies);
+                fd.append('temperature_file', State.files.temp);
 
-            calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                locale: 'ru',
-                height: '100%',
-                customButtons: {
-                    monthView: {
-                        text: 'Month',
-                        click: function () {
-                            setMode('month');
+                let res = await fetch(`${CONFIG.API_URL}/import`, { method: 'POST', body: fd });
+                if (!res.ok) throw new Error((await res.json()).detail || 'Upload error');
+
+                res = await fetch(`${CONFIG.API_URL}/predict`, { method: 'POST' });
+                if (!res.ok) throw new Error((await res.json()).detail || 'Predict error');
+                return await res.json();
+            }
+        };
+
+        const App = {
+            async init() {
+                ['weather', 'supplies', 'temp'].forEach(k => {
+                    document.getElementById(`${k}File`).onchange = (e) => {
+                        if (e.target.files[0]) {
+                            State.files[k] = e.target.files[0];
+                            UI.updateFileUI(k, e.target.files[0]);
                         }
-                    },
-                    listView: {
-                        text: 'List',
-                        click: function () {
-                            setMode(isListMode ? 'month' : 'list');
-                        }
-                    }
-                },
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'monthView,listView'
-                },
-                eventContent: function (arg) {
-                    const props = arg.event.extendedProps;
-                    const styleClass = props.prob > 0.7 ? 'risk-high' : 'risk-med';
-                    const icon = props.prob > 0.7 ? 'fa-fire' : 'fa-triangle-exclamation';
-
-                    return {
-                        html: `<div class="event-pill ${styleClass}">
-                                <i class="fa-solid ${icon}"></i>
-                                <span>Скл.${props.sklad}/Шт.${props.pile}</span>
-                               </div>`
                     };
-                },
-                eventClick: function (info) {
-                    const p = info.event.extendedProps;
-                    p.date = info.event.startStr;
-                    openModal(p);
-                },
-                noEventsContent: {
-                    html: `
-                        <div class="empty-state-container">
-                            <div style="position:relative">
-                                <div class="empty-icon"><i class="fa-solid fa-robot"></i></div>
-                                <div class="zzz-anim">Zzz...</div>
-                            </div>
-                            <h2 style="font-weight:300; margin:0; color:white;">Всё спокойно</h2>
-                            <p style="opacity:0.7">Рисков возгорания не обнаружено</p>
-                        </div>
-                    `
-                }
-            });
-        });
+                });
+                const online = await API.ping();
+                UI.setStatus(online);
+            },
 
-        // --- RUN ANALYSIS ---
-        async function runAnalysis() {
-            const files = [
-                document.getElementById('weatherFile').files[0],
-                document.getElementById('suppliesFile').files[0],
-                document.getElementById('tempFile').files[0]
-            ];
+            async runAnalysis() {
+                UI.toggleLoader(true);
+                try {
+                    const data = await API.uploadAndPredict();
+                    if (data.status === 'error') throw new Error(data.message);
+                    State.data = data;
+                    this.renderAll(data);
 
-            if (files.some(f => !f)) {
-                alert("⚠️ Выберите все 3 файла!");
-                return;
-            }
+                    document.getElementById('viewUpload').classList.remove('active');
+                    document.getElementById('viewDashboard').classList.add('active');
+                    document.getElementById('tabNav').style.display = 'flex';
 
-            document.getElementById('loader-overlay').style.display = 'flex';
+                    UI.toast(`Найдено рисков: ${data.high_risk_count}`);
+                } catch (e) {
+                    console.error(e);
+                    UI.toast(e.message, 'error');
+                } finally { UI.toggleLoader(false); }
+            },
 
-            const formData = new FormData();
-            formData.append('weather_file', files[0]);
-            formData.append('supplies_file', files[1]);
-            formData.append('temperature_file', files[2]);
+            renderAll(data) {
+                const risks = data.top_risks || [];
+                document.getElementById('statRiskCount').textContent = data.high_risk_count;
 
-            try {
-                const res = await fetch(API_URL, { method: 'POST', body: formData });
-                if (!res.ok) throw new Error("Network Error");
-                const data = await res.json();
+                // 1. Weather (Safe render)
+                UI.renderWeather(risks.length > 0 ? risks[0] : null);
 
-                if (data.status === 'error') throw new Error(data.message);
-
-                renderData(data);
-
-                document.getElementById('loader-overlay').style.display = 'none';
-                document.getElementById('upload-screen').style.display = 'none';
-                document.getElementById('dashboard-screen').style.display = 'flex';
-
-                setTimeout(() => {
-                    calendar.render();
-                    calendar.updateSize();
-                    setMode('month'); // по умолчанию Month активен
-                }, 100);
-
-            } catch (err) {
-                document.getElementById('loader-overlay').style.display = 'none';
-                alert("Ошибка: " + err.message);
-            }
-        }
-
-        // --- RENDER LIQUID GLASS RISK LIST ---
-        function renderRisksList(risks) {
-            const list = document.getElementById('risksList');
-            const label = document.getElementById('risksCountLabel');
-            if (!list || !label) return;
-
-            list.innerHTML = '';
-            label.textContent = `${risks.length} записей`;
-
-            if (!risks || risks.length === 0) {
-                const empty = document.createElement('div');
-                empty.style.fontSize = '0.85rem';
-                empty.style.color = 'var(--text-muted)';
-                empty.style.textAlign = 'center';
-                empty.style.marginTop = '10px';
-                empty.textContent = 'Нет обнаруженных рисков (порог > 10%) или анализ ещё не выполнен.';
-                list.appendChild(empty);
-                return;
-            }
-
-            risks.forEach(r => {
-                const prob = r.fire_probability || 0;
-                const probPct = (prob * 100).toFixed(1);
-                const isHigh = prob > 0.7;
-
-                const card = document.createElement('div');
-                card.className = 'risk-card ' + (isHigh ? 'risk-card-high' : 'risk-card-med');
-
-                const mainRow = document.createElement('div');
-                mainRow.className = 'risk-main-row';
-
-                const left = document.createElement('div');
-                left.className = 'risk-chips';
-
-                const levelChip = document.createElement('div');
-                levelChip.className = 'chip ' + (isHigh ? 'chip-high' : 'chip-med');
-                levelChip.innerHTML = isHigh
-                    ? '<i class="fa-solid fa-fire"></i> Высокий риск'
-                    : '<i class="fa-solid fa-triangle-exclamation"></i> Предупреждение';
-
-                const location = document.createElement('div');
-                location.className = 'risk-location';
-                location.textContent = `Скл. ${r["Склад"]} • Шт. ${r["Штабель"]}`;
-
-                left.appendChild(levelChip);
-                left.appendChild(location);
-
-                const probChip = document.createElement('div');
-                probChip.className = 'chip chip-prob';
-                probChip.innerHTML = `<i class="fa-solid fa-burn"></i> ${probPct}%`;
-
-                mainRow.appendChild(left);
-                mainRow.appendChild(probChip);
-
-                const subRow = document.createElement('div');
-                subRow.className = 'risk-sub-row';
-
-                const massSpan = document.createElement('span');
-                massSpan.innerHTML = `<i class="fa-solid fa-weight-hanging"></i> ${Math.round(r["Масса угля"])} тн`;
-
-                const dateSpan = document.createElement('span');
-                dateSpan.innerHTML = `<i class="fa-regular fa-calendar"></i> ${r.date}`;
-
-                subRow.appendChild(massSpan);
-                subRow.appendChild(dateSpan);
-
-                card.appendChild(mainRow);
-                card.appendChild(subRow);
-
-                card.addEventListener('click', () => {
-                    // Прыгаем к дате в календаре и открываем модал
-                    calendar.gotoDate(r.date);
-                    openModal({
-                        prob,
-                        sklad: r["Склад"],
-                        pile: r["Штабель"],
-                        mass: Math.round(r["Масса угля"]),
-                        date: r.date
-                    });
+                // 2. Calendar with Color Coding
+                const calEl = document.getElementById('calendarEl');
+                State.calendar = new FullCalendar.Calendar(calEl, {
+                    initialView: 'dayGridMonth', locale: 'ru', height: '100%',
+                    headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+                    events: risks.map(r => ({
+                        title: `Скл.${r['Склад']}`, start: r.date,
+                        // 2. COLOR CODING FIX: Map JS logic to CSS classes
+                        classNames: r.fire_probability > CONFIG.HIGH_RISK ? 'evt-high' : 'evt-med',
+                        extendedProps: { sklad: r['Склад'], pile: r['Штабель'], mass: r['coal_mass'], prob: r.fire_probability, date: r.date }
+                    })),
+                    eventClick: (info) => UI.renderModal(info.event.extendedProps)
                 });
 
-                list.appendChild(card);
-            });
-        }
-
-        // --- RENDER DASHBOARD DATA ---
-        function renderData(data) {
-            const risks = data.top_risks;
-            currentRisks = risks;
-
-            document.getElementById('risk-counter').textContent = data.high_risk_count;
-
-            calendar.removeAllEvents();
-            if (risks.length > 0) calendar.gotoDate(risks[0].date);
-
-            const events = risks.map(r => ({
-                start: r.date,
-                extendedProps: {
-                    sklad: r["Склад"],
-                    pile: r["Штабель"],
-                    prob: r.fire_probability,
-                    mass: Math.round(r['Масса угля'])
+                if (risks.length > 0) {
+                    const sorted = [...risks].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    State.calendar.gotoDate(sorted[0].date);
                 }
-            }));
-            calendar.addEventSource(events);
+                setTimeout(() => State.calendar.render(), 100);
 
-            const ctx = document.getElementById('pieChart').getContext('2d');
-            const whData = data.warehouse_stats;
+                // 3. Sidebar List & Empty State
+                const listContainer = document.getElementById('riskListContainer');
+                listContainer.innerHTML = '';
 
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(whData).map(k => `Склад ${k}`),
+                if (risks.length === 0) {
+                    // 3. EMPTY STATE ANIMATION
+                    document.getElementById('emptyState').style.display = 'flex';
+                    listContainer.style.display = 'none';
+                } else {
+                    document.getElementById('emptyState').style.display = 'none';
+                    listContainer.style.display = 'block';
+
+                    // Populate List
+                    risks.forEach(r => {
+                        const isHigh = r.fire_probability > CONFIG.HIGH_RISK;
+                        const el = document.createElement('div');
+                        // 2. COLOR CODING in LIST
+                        el.className = `risk-card ${isHigh ? 'risk-high' : 'risk-med'}`;
+                        el.innerHTML = `
+                            <div class="risk-info">
+                                <h4>Скл.${r['Склад']} / Шт.${r['Штабель']}</h4>
+                                <span><i class="fa-regular fa-calendar"></i> ${r.date}</span>
+                                <span><i class="fa-solid fa-weight-hanging"></i> ${Math.round(r['coal_mass'])} тн</span>
+                            </div>
+                            <div class="risk-prob">${(r.fire_probability * 100).toFixed(0)}%</div>
+                        `;
+                        el.onclick = () => {
+                            UI.renderModal({ sklad: r['Склад'], pile: r['Штабель'], mass: r['coal_mass'], prob: r.fire_probability, date: r.date });
+                            State.calendar.gotoDate(r.date);
+                        };
+                        listContainer.appendChild(el);
+                    });
+                }
+
+                // 4. Charts
+                this.renderCharts(data);
+            },
+
+            renderCharts(data) {
+                const dates = {};
+                (data.top_risks || []).forEach(r => dates[r.date] = (dates[r.date] || 0) + 1);
+                const sortedDates = Object.keys(dates).sort();
+
+                this.drawChart('trendChart', 'line', {
+                    labels: sortedDates,
                     datasets: [{
-                        data: Object.values(whData),
-                        backgroundColor: ['#3b82f6', '#8b5cf6', '#f43f5e', '#f59e0b'],
-                        borderWidth: 0,
+                        label: 'Кол-во рисков', data: sortedDates.map(d => dates[d]),
+                        borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', fill: true, tension: 0.4
                     }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
-                }
-            });
+                });
 
-            // Подготовим список для режима List (поскольку List заменяет Month)
-            renderRisksList(risks);
-        }
+                const types = {};
+                (data.top_risks || []).forEach(r => {
+                    const t = r['Наим. ЕТСНГ'] || r['coal_type'] || 'Неизвестно';
+                    types[t] = (types[t] || 0) + 1;
+                });
+
+                this.drawChart('typeChart', 'doughnut', {
+                    labels: Object.keys(types),
+                    datasets: [{
+                        data: Object.values(types),
+                        backgroundColor: ['#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#10b981'], borderWidth: 0
+                    }]
+                });
+
+                const wh = data.stats_by_warehouse || {};
+                this.drawChart('whChart', 'bar', {
+                    labels: Object.keys(wh).map(k => `Склад ${k}`),
+                    datasets: [{
+                        label: 'Рисков', data: Object.values(wh), backgroundColor: '#8b5cf6', borderRadius: 6
+                    }]
+                });
+            },
+
+            drawChart(id, type, data) {
+                if (State.charts[id]) State.charts[id].destroy();
+                const ctx = document.getElementById(id).getContext('2d');
+                State.charts[id] = new Chart(ctx, {
+                    type, data,
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: type === 'doughnut', position: 'right', labels: { color: '#94a3b8', font: { size: 10 } } } },
+                        scales: type === 'doughnut' ? {} : { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } }
+                    }
+                });
+            },
+
+            exportData(fmt) {
+                window.location.href = `${CONFIG.API_URL}/export?format=${fmt}`;
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 

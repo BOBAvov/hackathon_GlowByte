@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Сервис Бэкенда
+  backend:
+    build: ./backend
+    container_name: glowbyte_backend
+    ports:
+      - "8080:8080"
+    volumes:
+      # Прокидываем модели с хоста в контейнер, чтобы можно было их обновлять без пересборки
+      - ./backend/models:/app/models
+      # Сохраняем загруженные данные (CSV) даже если контейнер перезагрузится
+      - ./backend/data:/app/data
+    restart: always
+
+  # Сервис Фронтенда
+  frontend:
+    build: ./frontend
+    container_name: glowbyte_frontend
+    ports:
+      - "80:80"  # Фронт будет доступен по http://localhost
+    depends_on:
+      - backend
+    restart: always

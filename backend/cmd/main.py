@@ -8,17 +8,12 @@ from internal.handler import router as api_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ml_model
-    print("🚀 Запуск приложения...")
-
+    print("🚀 Starting application & loading models...")
     config.loadConfig()
-    ml_model = config.ml_model
-
     yield
-    print("🛑 Остановка приложения...")
+    print("🛑 Shutting down application...")
 
-
-app = FastAPI(title="Coal Fire Prediction API", version="2.3", lifespan=lifespan)
+app = FastAPI(title="Coal Fire Prediction API", version="3.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -31,4 +26,4 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api")
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8080)
+    uvicorn.run("cmd.main:app", host="0.0.0.0", port=8080, reload=False)
