@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+
+    <title>GlowByte Autumn Hack 2025 - FireGuard AI</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reset.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/theme/night.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <!-- Custom Theme Overrides for GlowByte Style -->
+    <style>
+      :root {
+        --primary: #3b82f6;
+        --accent: #8b5cf6;
+        --danger: #f43f5e;
+        --glass: rgba(255, 255, 255, 0.05);
+      }
+
+      .reveal {
+        background: radial-gradient(at 0% 0%, #0f172a 0%, #000000 100%);
+      }
+
+      .reveal h1,
+      .reveal h2,
+      .reveal h3 {
+        text-transform: none;
+        font-family: "Outfit", sans-serif;
+      }
+
+      .gradient-text {
+        background: linear-gradient(to right, #60a5fa, #c084fc);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+      }
+
+      .card {
+        background: var(--glass);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px;
+        backdrop-filter: blur(10px);
+      }
+
+      .flex-row {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+      }
+
+      .icon-large {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        color: var(--primary);
+      }
+
+      code {
+        color: #a5b4fc;
+      }
+
+      .reveal pre {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <!-- SLIDE 1: TITLE -->
+        <section>
+          <div style="font-size: 5rem; margin-bottom: 20px">
+            <i
+              class="fa-solid fa-fire-flame-curved"
+              style="color: var(--danger)"
+            ></i>
+          </div>
+          <h1 class="gradient-text">GlowByte FireGuard AI</h1>
+          <h3>Система прогнозирования самовозгорания угля</h3>
+          <p style="color: #94a3b8; margin-top: 50px">
+            Autumn Hack 2025 | Команда №1
+          </p>
+        </section>
+
+        <!-- SLIDE 2: PROBLEM -->
+        <section>
+          <h2>Проблема</h2>
+          <div class="flex-row">
+            <div class="card fragment fade-up">
+              <i
+                class="fa-solid fa-triangle-exclamation icon-large"
+                style="color: var(--danger)"
+              ></i>
+              <h4>Безопасность</h4>
+              <p style="font-size: 0.6em">
+                Угроза жизни персонала и риск повреждения инфраструктуры
+              </p>
+            </div>
+            <div class="card fragment fade-up">
+              <i
+                class="fa-solid fa-sack-dollar icon-large"
+                style="color: #f59e0b"
+              ></i>
+              <h4>Экономика</h4>
+              <p style="font-size: 0.6em">
+                Потеря ценного ресурса (выгорание) и затраты на тушение
+              </p>
+            </div>
+            <div class="card fragment fade-up">
+              <i class="fa-solid fa-leaf icon-large" style="color: #10b981"></i>
+              <h4>Экология</h4>
+              <p style="font-size: 0.6em">
+                Выбросы вредных веществ в атмосферу при окислении
+              </p>
+            </div>
+          </div>
+          <p class="fragment" style="margin-top: 30px; font-style: italic">
+            "Необходимо прогнозировать риски за 3 дня с точностью ±2 дня"
+          </p>
+        </section>
+
+        <!-- SLIDE 3: SOLUTION ARCHITECTURE -->
+        <section>
+          <h2>Архитектура Решения</h2>
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 20px;
+              text-align: left;
+            "
+          >
+            <div class="card">
+              <h4 style="color: var(--primary)">
+                <i class="fa-brands fa-docker"></i> Infrastructure
+              </h4>
+              <ul style="font-size: 0.7em">
+                <li>Полная контейнеризация (Docker)</li>
+                <li>Docker Compose оркестрация</li>
+                <li>Nginx как веб-сервер</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4 style="color: var(--accent)">
+                <i class="fa-brands fa-python"></i> Backend
+              </h4>
+              <ul style="font-size: 0.7em">
+                <li>FastAPI (Python 3.11) - Асинхронный</li>
+                <li>REST API (Import/Predict/Export)</li>
+                <li>Pydantic валидация данных</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4 style="color: #ec4899">
+                <i class="fa-brands fa-js"></i> Frontend
+              </h4>
+              <ul style="font-size: 0.7em">
+                <li>Vanilla JS + Glassmorphism UI</li>
+                <li>Chart.js (Визуализация)</li>
+                <li>FullCalendar (Календарь рисков)</li>
+              </ul>
+            </div>
+            <div class="card">
+              <h4 style="color: #10b981">
+                <i class="fa-solid fa-brain"></i> Data Science
+              </h4>
+              <ul style="font-size: 0.7em">
+                <li>Scikit-learn / XGBoost</li>
+                <li>Feature Engineering Pipeline</li>
+                <li>Joblib сериализация</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 4: DATA SCIENCE PIPELINE -->
+        <section>
+          <h2>Data Science Подход</h2>
+          <p style="font-size: 0.7em; text-align: left">
+            Мы не просто обучили модель, мы создали умные признаки:
+          </p>
+
+          <div class="r-stack">
+            <div class="card fragment fade-out" data-fragment-index="0">
+              <h3>1. Подготовка данных</h3>
+              <p>
+                Объединение разрозненных источников (Погода, Поставки,
+                Температура) в единый временной ряд (Time Series).
+              </p>
+            </div>
+            <div class="card fragment current-visible" data-fragment-index="0">
+              <h3>2. Feature Engineering</h3>
+              <ul style="text-align: left; font-size: 0.8em">
+                <li>
+                  <b>Deltas (1d, 3d):</b> Скорость изменения температуры
+                  (производная).
+                </li>
+                <li>
+                  <b>Rolling Windows (5d):</b> Скользящие средние для
+                  сглаживания шума.
+                </li>
+                <li><b>Lags:</b> Исторические данные как предикторы.</li>
+              </ul>
+            </div>
+            <div class="card fragment">
+              <h3>3. Моделирование</h3>
+              <p>Использован ансамбль деревьев (Random Forest/XGBoost).</p>
+              <p style="color: var(--success)">
+                Точность прогноза (±2 дня) > 75%
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 5: FRONTEND FEATURES -->
+        <section>
+          <h2>Интерфейс оператора</h2>
+          <div class="flex-row" style="font-size: 0.6em">
+            <div style="flex: 1">
+              <ul style="list-style: none">
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Drag-n-Drop загрузка CSV
+                </li>
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Интерактивный календарь угроз
+                </li>
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Цветовая индикация рисков
+                </li>
+              </ul>
+            </div>
+            <div style="flex: 1">
+              <ul style="list-style: none">
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Экспорт отчетов (XLSX, CSV)
+                </li>
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Статистика по типам угля
+                </li>
+                <li class="fragment fade-right">
+                  <i
+                    class="fa-solid fa-check"
+                    style="color: var(--success)"
+                  ></i>
+                  Виджет погоды
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            class="fragment"
+            style="
+              margin-top: 20px;
+              padding: 10px;
+              background: rgba(255, 255, 255, 0.1);
+              border-radius: 10px;
+            "
+          >
+            <i class="fa-solid fa-desktop"></i> ДЕМОНСТРАЦИЯ РЕШЕНИЯ
+          </div>
+        </section>
+
+        <!-- SLIDE 6: CODE QUALITY -->
+        <section>
+          <h2>Качество кода</h2>
+          <p style="font-size: 0.6em">Профессиональный подход к разработке</p>
+          <pre><code class="language-python" data-trim data-noescape>
+# Пример модульной архитектуры (Dependency Injection)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    print("🚀 Loading ML models...")
+    config.loadConfig()
+    yield
+    print("🛑 Shutdown...")
+
+app = FastAPI(lifespan=lifespan)
+            </code></pre>
+          <div class="flex-row" style="font-size: 0.6em; margin-top: 20px">
+            <div class="card">
+              <i class="fa-solid fa-file-circle-check"></i> Type Hinting
+            </div>
+            <div class="card">
+              <i class="fa-solid fa-layer-group"></i> Clean Architecture
+            </div>
+            <div class="card">
+              <i class="fa-solid fa-bug"></i> Error Handling
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 7: BUSINESS VALUE -->
+        <section>
+          <h2>Ценность для бизнеса</h2>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px">
+            <div
+              class="card"
+              style="
+                background: linear-gradient(
+                  45deg,
+                  rgba(16, 185, 129, 0.2),
+                  transparent
+                );
+              "
+            >
+              <h3>Раннее предупреждение</h3>
+              <p style="font-size: 0.6em">
+                Система дает запас времени в 3-5 дней для принятия мер
+                (ворошение, уплотнение).
+              </p>
+            </div>
+            <div
+              class="card"
+              style="
+                background: linear-gradient(
+                  45deg,
+                  rgba(59, 130, 246, 0.2),
+                  transparent
+                );
+              "
+            >
+              <h3>Автоматизация</h3>
+              <p style="font-size: 0.6em">
+                Уход от ручного анализа Excel таблиц к единому Dashboard.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 8: TEAM -->
+        <section>
+          <h2>Наша Команда</h2>
+          <div class="flex-row">
+            <div style="text-align: center">
+              <i class="fa-solid fa-user-astronaut icon-large"></i>
+              <p style="font-size: 0.7em">Data Scientist</p>
+            </div>
+            <div style="text-align: center">
+              <i class="fa-solid fa-user-ninja icon-large"></i>
+              <p style="font-size: 0.7em">Backend Dev</p>
+            </div>
+            <div style="text-align: center">
+              <i class="fa-solid fa-user-pen icon-large"></i>
+              <p style="font-size: 0.7em">Frontend / UI</p>
+            </div>
+            <div style="text-align: center">
+              <i class="fa-solid fa-user-tie icon-large"></i>
+              <p style="font-size: 0.7em">Analyst</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SLIDE 9: FINAL -->
+        <section>
+          <h1 class="gradient-text">Спасибо за внимание!</h1>
+          <div style="margin-top: 40px">
+            <p>Готовы ответить на вопросы</p>
+            <p style="font-size: 0.6em; color: var(--accent)">
+              GlowByte Autumn Hack 2025
+            </p>
+          </div>
+          <div style="margin-top: 50px">
+            <a
+              href="https://github.com/BOBAvov/hackathon_GlowByte"
+              class="card"
+              style="text-decoration: none; color: white; padding: 15px 30px"
+            >
+              <i class="fa-brands fa-github"></i> Ссылка на GitHub
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/reveal.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/5.0.4/plugin/highlight/highlight.min.js"></script>
+    <script>
+      Reveal.initialize({
+        hash: true,
+        controls: true,
+        progress: true,
+        center: true,
+        transition: "convex", // none/fade/slide/convex/concave/zoom
+        backgroundTransition: "fade",
+        plugins: [RevealHighlight],
+      });
+    </script>
+  </body>
+</html>
